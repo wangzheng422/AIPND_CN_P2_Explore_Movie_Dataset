@@ -37,7 +37,7 @@
 # 
 # 提示：记得使用 notebook 中的魔法指令 `%matplotlib inline`，否则会导致你接下来无法打印出图像。
 
-# In[1]:
+# In[2]:
 
 
 import numpy
@@ -63,7 +63,7 @@ movie_data.info()
 # 
 # 
 
-# In[2]:
+# In[3]:
 
 
 
@@ -84,10 +84,10 @@ movie_data.describe()
 # 
 # 任务：使用适当的方法来清理空值，并将得到的数据保存。
 
-# In[3]:
+# In[5]:
 
 
-movie_data.fillna("testfill")
+movie_data.fillna("testfill", inplace=True)
 
 
 # ---
@@ -111,12 +111,12 @@ movie_data.fillna("testfill")
 # 
 # 要求：每一个语句只能用一行代码实现。
 
-# In[4]:
+# In[6]:
 
 
 movie_data[['id','vote_average','budget','runtime','vote_average']]
-movie_data.iloc[0:20].append(movie_data.iloc[48:50])
-movie_data.iloc[50:60]['popularity']
+movie_data.iloc[0:20].append(movie_data.iloc[47:50])
+movie_data.iloc[49:60]['popularity']
 
 
 # ---
@@ -130,7 +130,7 @@ movie_data.iloc[50:60]['popularity']
 # 
 # 要求：请使用 Logical Indexing实现。
 
-# In[5]:
+# In[7]:
 
 
 movie_data.loc[movie_data['popularity'] >5] 
@@ -147,7 +147,7 @@ movie_data.loc[(movie_data['popularity'] >5)& (movie_data['release_year'] >1996)
 # 
 # 要求：使用 `Groupby` 命令实现。
 
-# In[6]:
+# In[8]:
 
 
 import numpy as np
@@ -174,22 +174,50 @@ movie_data[['director','popularity']].groupby(['director'],as_index=False).agg(n
 
 # **任务3.1：**对 `popularity` 最高的20名电影绘制其 `popularity` 值。
 
-# In[7]:
+# In[14]:
 
 
-ts = movie_data['popularity'].sort_values(ascending=False)[1:20]
+import matplotlib.pyplot as plt
 
-ts.plot(kind='bar')
+ts = movie_data.sort_values(by = 'popularity', ascending = False)[0:20]
+
+ts.plot(kind='barh', y = 'popularity', x = 'original_title', legend = False)
+plt.xlabel('Popularity')
+plt.ylabel('Original title')
+plt.title('Popularities of top 20 movies')
 
 
 # ---
 # **任务3.2：**分析电影净利润（票房-成本）随着年份变化的情况，并简单进行分析。
 
-# In[8]:
+# In[21]:
 
 
-ts = movie_data[['revenue','budget','release_year']].groupby('release_year').sum()
-ts.plot()
+import pandas as pd
+
+movie_data['net'] = movie_data.revenue - movie_data.budget
+movie_net = pd.DataFrame(movie_data.groupby(['release_year'])['net'].mean())
+movie_net['sem'] = list(movie_data.groupby(['release_year'])['net'].sem())
+movie_net['sum'] = list(movie_data.groupby(['release_year'])['net'].sum())
+movie_net['count'] = list(movie_data.groupby(['release_year'])['net'].count())
+movie_net['release_year'] = movie_net.index
+movie_net.head()
+
+plt.figure(figsize = [14, 10])
+plt.subplot(3, 1, 1)
+plt.errorbar(data = movie_net, x = 'release_year', y = 'net', yerr = 'sem');
+plt.xticks([], []);
+plt.title('Mean of net profit per year');
+
+plt.subplot(3, 1, 2)
+plt.errorbar(data = movie_net, x = 'release_year', y = 'count');
+plt.xticks([], []);
+plt.title('Movie counts per year')
+
+plt.subplot(3, 1, 3)
+plt.errorbar(data = movie_net, x = 'release_year', y = 'sum');
+plt.xticks(movie_net['release_year'], rotation = 90);
+plt.title('Sum of net profit per year')
 
 
 # ---
